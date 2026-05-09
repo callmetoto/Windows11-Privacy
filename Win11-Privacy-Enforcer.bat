@@ -7,7 +7,8 @@ title Win11 Master Debloat by callmetoto
 net session >nul 2>&1
 if %errorLevel% neq 0 (
     color 0C
-    echo [ERROR] ADMINISTRATIVE RIGHTS REQUIRED
+    echo [ERROR] ADMINISTRATIVE RIGHTS REQUIRED. 
+    echo Please right-click and "Run as Administrator".
     pause
     exit /b
 )
@@ -36,28 +37,12 @@ if "%choice%"=="4" goto UndoTweaks
 if "%choice%"=="5" exit
 goto MainMenu
 
-:UndoTweaks
-cls
-echo Reverting changes...
-:: Restore Context Menu
-reg delete "HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}" /f >nul 2>&1
-:: Re-enable Copilot
-reg delete "HKCU\Software\Policies\Microsoft\Windows\WindowsCopilot" /v TurnOffWindowsCopilot /f >nul 2>&1
-echo Done! Restarting Explorer...
-taskkill /f /im explorer.exe >nul 2>&1
-start explorer.exe
-pause
-goto MainMenu
-
 :ApplyTweaks
 cls
-echo Applying tweaks...
-:: ... (Keep your original code for 1/9 through 8/9) ...
-
-:: Updated Step 9/9 for total reliability
+echo [>] Applying tweaks...
+:: [Insert your original steps 1-8 here]
 echo [9/9] Restoring classic full context menu...
 reg add "HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32" /f /ve >nul 2>&1
-
 echo.
 echo ==========================================================
 echo TWEAKS APPLIED! RESTARTING EXPLORER...
@@ -69,4 +54,46 @@ echo All operations complete.
 pause
 goto MainMenu
 
-:: ... (Keep the rest of your Metadata and ShowDetails sections) ...
+:DisableMetadata
+cls
+echo [>] Disabling NTFS Last Access Tracking...
+:: Standard command to stop Windows from writing 'last accessed' data to every file
+fsutil behavior set disablelastaccess 1 >nul 2>&1
+if %errorLevel% neq 0 (
+    echo [!] Failed. Ensure no other process is locking system behaviors.
+) else (
+    echo [!] Success: NTFS Last Access tracking disabled.
+    echo [!] NOTE: You must REBOOT for this to take effect.
+)
+pause
+goto MainMenu
+
+:ShowDetails
+cls
+echo ==========================================================
+echo                SCRIPT DETAILS ^& LICENSE
+echo ==========================================================
+echo Author: @callmetoto
+echo License: MIT
+echo.
+echo This script uses native 'reg add' and 'fsutil' commands 
+echo to reclaim privacy and performance on Windows 11.
+echo.
+echo Tweaks included: Copilot removal, Telemetry kill, 
+echo Edge bloat reduction, and Classic UI restoration.
+echo ==========================================================
+pause
+goto MainMenu
+
+:UndoTweaks
+cls
+echo [>] Reverting changes...
+:: Restore Context Menu
+reg delete "HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}" /f >nul 2>&1
+:: Re-enable Copilot
+reg delete "HKCU\Software\Policies\Microsoft\Windows\WindowsCopilot" /v TurnOffWindowsCopilot /f >nul 2>&1
+echo Done! Restarting Explorer...
+taskkill /f /im explorer.exe >nul 2>&1
+start explorer.exe
+pause
+goto MainMenu
