@@ -1,99 +1,165 @@
 @echo off
-:: Set Hacker Vibes
+setlocal enabledelayedexpansion
+:: Set Hacker/Professional Vibes
 color 0A
-title Win11 Master Debloat by callmetoto
+title Win11 Master Debloat Suite by callmetoto
 
 :: ADMIN CHECK
 net session >nul 2>&1
 if %errorLevel% neq 0 (
     color 0C
-    echo [ERROR] ADMINISTRATIVE RIGHTS REQUIRED. 
+    echo [ERROR] THIS SCRIPT REQUIRES ADMINISTRATIVE PRIVILEGES.
     echo Please right-click and "Run as Administrator".
     pause
     exit /b
 )
 
+:Disclaimer
+cls
+color 0E
+echo ==========================================================
+echo                     !!! WARNING !!!
+echo ==========================================================
+echo This script modifies System Registry settings and removes 
+echo Windows App packages. While safe for most, you should:
+echo.
+echo 1. Create a SYSTEM RESTORE POINT before continuing.
+echo 2. Understand that some features (like Copilot) require 
+echo    a Store download to reinstall.
+echo 3. Use Tiger Privacy only if you don't mind losing 
+echo    "Recent Files" history in File Explorer.
+echo ==========================================================
+echo.
+set /p "agree=Do you want to proceed? (Y/N): "
+if /i "%agree%" neq "Y" exit
+goto MainMenu
+
 :MainMenu
 cls
 color 0A
 echo ==========================================================
-echo WINDOWS 11 MASTER DEBLOAT ^& PRIVACY SCRIPT
+echo       WINDOWS 11 MASTER DEBLOAT ^& PRIVACY SUITE
 echo ==========================================================
-echo Created by: callmetoto (GitHub)
-echo.
-echo [1] Apply All Debloat Tweaks (The Magic Button)
-echo [2] Disable File Metadata Tracking (Advanced)
-echo [3] View Script Details ^& License
-echo [4] UNDO: Restore Classic Menu ^& Re-enable Copilot
-echo [5] Exit
+echo [1] Remove COPILOT (App ^& Taskbar)
+echo [2] Disable TELEMETRY ^& ADS (Privacy Pack)
+echo [3] Strip EDGE Bloat (Stop Background Processes)
+echo [4] Disable METADATA ^& Activity Tracking
+echo [5] Restore CLASSIC Right-Click Menu
+echo ----------------------------------------------------------
+echo [P] PRESET: PANTHER (All of the above EXCEPT Metadata)
+echo [T] PRESET: TIGER   (The Nuclear Option - Everything)
+echo ----------------------------------------------------------
+echo [U] UNDO (Restore Copilot ^& Modern Menu)
+echo [X] EXIT
 echo ==========================================================
 echo.
-set /p "choice=Please enter your choice (1-5): "
+set /p "choice=Select an option: "
 
-if "%choice%"=="1" goto ApplyTweaks
-if "%choice%"=="2" goto DisableMetadata
-if "%choice%"=="3" goto ShowDetails
-if "%choice%"=="4" goto UndoTweaks
-if "%choice%"=="5" exit
+if /i "%choice%"=="1" goto Sub_Copilot
+if /i "%choice%"=="2" goto Sub_Telemetry
+if /i "%choice%"=="3" goto Sub_Edge
+if /i "%choice%"=="4" goto Sub_Metadata
+if /i "%choice%"=="5" goto Sub_ClassicMenu
+if /i "%choice%"=="P" goto Preset_Panther
+if /i "%choice%"=="T" goto Preset_Tiger
+if /i "%choice%"=="U" goto UndoTweaks
+if /i "%choice%"=="X" exit
 goto MainMenu
 
-:ApplyTweaks
-cls
-echo [>] Applying tweaks...
-:: [Insert your original steps 1-8 here]
-echo [9/9] Restoring classic full context menu...
+:: --- INDIVIDUAL SUB-ROUTINES ---
+
+:Sub_Copilot
+echo [>] Nuking Copilot...
+taskkill /f /im "Copilot.exe" >nul 2>&1
+powershell -command "Get-AppxPackage *Microsoft.Copilot* | Remove-AppxPackage" >nul 2>&1
+reg add "HKCU\Software\Policies\Microsoft\Windows\WindowsCopilot" /v "TurnOffWindowsCopilot" /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "ShowCopilotButton" /t REG_DWORD /d 0 /f >nul 2>&1
+echo Done.
+if /i "%running_preset%"=="true" goto :EOF
+pause
+goto MainMenu
+
+:Sub_Telemetry
+echo [>] Killing Telemetry ^& Ads...
+sc config DiagTrack start= disabled >nul 2>&1
+net stop DiagTrack >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v "AllowTelemetry" /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "SystemPaneSuggestionsEnabled" /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Search" /v "BingSearchEnabled" /t REG_DWORD /d 0 /f >nul 2>&1
+echo Done.
+if /i "%running_preset%"=="true" goto :EOF
+pause
+goto MainMenu
+
+:Sub_Edge
+echo [>] Trimming Edge background bloat...
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v "StartupBoostEnabled" /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v "BackgroundModeEnabled" /t REG_DWORD /d 0 /f >nul 2>&1
+echo Done.
+if /i "%running_preset%"=="true" goto :EOF
+pause
+goto MainMenu
+
+:Sub_Metadata
+echo [>] Disabling Metadata ^& Activity Tracking...
+fsutil behavior set disablelastaccess 1 >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\System" /v "EnableActivityFeed" /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v "ShowRecent" /t REG_DWORD /d 0 /f >nul 2>&1
+echo Done. (Reboot required for NTFS changes)
+if /i "%running_preset%"=="true" goto :EOF
+pause
+goto MainMenu
+
+:Sub_ClassicMenu
+echo [>] Restoring Classic Context Menu...
 reg add "HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32" /f /ve >nul 2>&1
+echo Done.
+if /i "%running_preset%"=="true" goto :EOF
+pause
+goto MainMenu
+
+:: --- PRESETS ---
+
+:Preset_Panther
+cls
+set "running_preset=true"
+echo [RUNNING PANTHER PRESET]
+call :Sub_Copilot
+call :Sub_Telemetry
+call :Sub_Edge
+call :Sub_ClassicMenu
+set "running_preset=false"
+goto RestartExplorer
+
+:Preset_Tiger
+cls
+set "running_preset=true"
+echo [RUNNING TIGER PRESET - TOTAL CLEAN]
+call :Sub_Copilot
+call :Sub_Telemetry
+call :Sub_Edge
+call :Sub_Metadata
+call :Sub_ClassicMenu
+set "running_preset=false"
+goto RestartExplorer
+
+:: --- UTILS ---
+
+:RestartExplorer
 echo.
 echo ==========================================================
-echo TWEAKS APPLIED! RESTARTING EXPLORER...
+echo RELOADING EXPLORER TO APPLY CHANGES...
 echo ==========================================================
 taskkill /f /im explorer.exe >nul 2>&1
 start explorer.exe
-echo.
-echo All operations complete.
-pause
-goto MainMenu
-
-:DisableMetadata
-cls
-echo [>] Disabling NTFS Last Access Tracking...
-:: Standard command to stop Windows from writing 'last accessed' data to every file
-fsutil behavior set disablelastaccess 1 >nul 2>&1
-if %errorLevel% neq 0 (
-    echo [!] Failed. Ensure no other process is locking system behaviors.
-) else (
-    echo [!] Success: NTFS Last Access tracking disabled.
-    echo [!] NOTE: You must REBOOT for this to take effect.
-)
-pause
-goto MainMenu
-
-:ShowDetails
-cls
-echo ==========================================================
-echo                SCRIPT DETAILS ^& LICENSE
-echo ==========================================================
-echo Author: @callmetoto
-echo License: MIT
-echo.
-echo This script uses native 'reg add' and 'fsutil' commands 
-echo to reclaim privacy and performance on Windows 11.
-echo.
-echo Tweaks included: Copilot removal, Telemetry kill, 
-echo Edge bloat reduction, and Classic UI restoration.
-echo ==========================================================
 pause
 goto MainMenu
 
 :UndoTweaks
 cls
-echo [>] Reverting changes...
-:: Restore Context Menu
+echo [>] Restoring Defaults...
 reg delete "HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}" /f >nul 2>&1
-:: Re-enable Copilot
-reg delete "HKCU\Software\Policies\Microsoft\Windows\WindowsCopilot" /v TurnOffWindowsCopilot /f >nul 2>&1
-echo Done! Restarting Explorer...
-taskkill /f /im explorer.exe >nul 2>&1
-start explorer.exe
-pause
-goto MainMenu
+reg delete "HKCU\Software\Policies\Microsoft\Windows\WindowsCopilot" /v "TurnOffWindowsCopilot" /f >nul 2>&1
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "ShowCopilotButton" /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Search" /v "BingSearchEnabled" /t REG_DWORD /d 1 /f >nul 2>&1
+goto RestartExplorer
