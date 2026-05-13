@@ -18,14 +18,14 @@ if %errorLevel% neq 0 (
 cls
 color 0E
 echo ==========================================================
-echo                     !!! WARNING !!!
+echo                    !!! WARNING !!!
 echo ==========================================================
 echo This script modifies System Registry settings and removes 
-echo Windows App packages. While safe for most, you should:
+echo Windows App packages globally. While safe, you should:
 echo.
 echo 1. Create a SYSTEM RESTORE POINT before continuing.
-echo 2. Understand that some features (like Copilot) require 
-echo    a Store download to reinstall.
+echo 2. Understand that features like Copilot or Widgets require 
+echo    a Microsoft Store download to reinstall later.
 echo 3. Use Tiger Privacy only if you don't mind losing 
 echo    "Recent Files" history in File Explorer.
 echo ==========================================================
@@ -40,16 +40,17 @@ color 0A
 echo ==========================================================
 echo       WINDOWS 11 MASTER DEBLOAT ^& PRIVACY SUITE
 echo ==========================================================
-echo [1] Remove COPILOT (App ^& Taskbar)
+echo [1] Remove COPILOT (App ^& Taskbar Integration)
 echo [2] Disable TELEMETRY ^& ADS (Privacy Pack)
 echo [3] Strip EDGE Bloat (Stop Background Processes)
 echo [4] Disable METADATA ^& Activity Tracking
 echo [5] Restore CLASSIC Right-Click Menu
+echo [6] Nuke WIDGETS ^& NEWS FEED (Global Uninstall)
 echo ----------------------------------------------------------
 echo [P] PRESET: PANTHER (All of the above EXCEPT Metadata)
 echo [T] PRESET: TIGER   (The Nuclear Option - Everything)
 echo ----------------------------------------------------------
-echo [U] UNDO (Restore Copilot ^& Modern Menu)
+echo [U] UNDO (Restore Classic Menu ^& Default Behavior)
 echo [X] EXIT
 echo ==========================================================
 echo.
@@ -60,6 +61,7 @@ if /i "%choice%"=="2" goto Sub_Telemetry
 if /i "%choice%"=="3" goto Sub_Edge
 if /i "%choice%"=="4" goto Sub_Metadata
 if /i "%choice%"=="5" goto Sub_ClassicMenu
+if /i "%choice%"=="6" goto Sub_Widgets
 if /i "%choice%"=="P" goto Preset_Panther
 if /i "%choice%"=="T" goto Preset_Tiger
 if /i "%choice%"=="U" goto UndoTweaks
@@ -69,9 +71,10 @@ goto MainMenu
 :: --- INDIVIDUAL SUB-ROUTINES ---
 
 :Sub_Copilot
-echo [>] Nuking Copilot...
+echo [>] Nuking Copilot globally...
 taskkill /f /im "Copilot.exe" >nul 2>&1
-powershell -command "Get-AppxPackage *Microsoft.Copilot* | Remove-AppxPackage" >nul 2>&1
+:: Targets both the newer PWA app package and the older shell integration
+powershell -command "Get-AppxPackage -AllUsers *Microsoft.Copilot* | Remove-AppxPackage -AllUsers" >nul 2>&1
 reg add "HKCU\Software\Policies\Microsoft\Windows\WindowsCopilot" /v "TurnOffWindowsCopilot" /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "ShowCopilotButton" /t REG_DWORD /d 0 /f >nul 2>&1
 echo Done.
@@ -80,7 +83,7 @@ pause
 goto MainMenu
 
 :Sub_Telemetry
-echo [>] Killing Telemetry ^& Ads...
+echo [>] Killing Telemetry ^& Start Menu Ads...
 sc config DiagTrack start= disabled >nul 2>&1
 net stop DiagTrack >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v "AllowTelemetry" /t REG_DWORD /d 0 /f >nul 2>&1
@@ -118,6 +121,21 @@ if /i "%running_preset%"=="true" goto :EOF
 pause
 goto MainMenu
 
+:Sub_Widgets
+echo [>] Nuking Widgets ^& Web Experience Pack globally...
+taskkill /f /im "widgetservice.exe" >nul 2>&1
+taskkill /f /im "widgets.exe" >nul 2>&1
+:: 1. Global uninstallation prevents Windows Update from staging a silent reinstall
+powershell -command "Get-AppxPackage -AllUsers *WebExperience* | Remove-AppxPackage -AllUsers" >nul 2>&1
+:: 2. Apply strict system policy lock
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Dsh" /v "AllowNewsAndInterests" /t REG_DWORD /d 0 /f >nul 2>&1
+:: 3. Unhook taskbar shell rendering
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "TaskbarDa" /t REG_DWORD /d 0 /f >nul 2>&1
+echo Done.
+if /i "%running_preset%"=="true" goto :EOF
+pause
+goto MainMenu
+
 :: --- PRESETS ---
 
 :Preset_Panther
@@ -128,6 +146,7 @@ call :Sub_Copilot
 call :Sub_Telemetry
 call :Sub_Edge
 call :Sub_ClassicMenu
+call :Sub_Widgets
 set "running_preset=false"
 goto RestartExplorer
 
@@ -140,6 +159,7 @@ call :Sub_Telemetry
 call :Sub_Edge
 call :Sub_Metadata
 call :Sub_ClassicMenu
+call :Sub_Widgets
 set "running_preset=false"
 goto RestartExplorer
 
@@ -157,9 +177,14 @@ goto MainMenu
 
 :UndoTweaks
 cls
-echo [>] Restoring Defaults...
+echo [>] Restoring Registry Defaults...
 reg delete "HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}" /f >nul 2>&1
-reg delete "HKCU\Software\Policies\Microsoft\Windows\WindowsCopilot" /v "TurnOffWindowsCopilot" /f >nul 2>&1
+reg delete "HKCU\Software\Policies\Microsoft\Windows\WindowsCopilot" /f >nul 2>&1
+reg delete "HKLM\SOFTWARE\Policies\Microsoft\Dsh" /v "AllowNewsAndInterests" /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "ShowCopilotButton" /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Search" /v "BingSearchEnabled" /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "TaskbarDa" /t REG_DWORD /d 1 /f >nul 2>&1
+echo.
+echo [!] NOTE: To completely restore Copilot or Widgets, open the Microsoft Store
+echo     app and search for "Windows Web Experience Pack" or "Microsoft Copilot".
 goto RestartExplorer
