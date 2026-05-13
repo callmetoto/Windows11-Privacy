@@ -14,7 +14,7 @@ A professional, lightweight, open-source batch script built to aggressively stri
 
 ## 🛠️ Installation & Usage
 
-1. **Download:** Save `Wind11-Privacy.Enforcer.bat` to your desktop.
+1. **Download:** Save `Win11-Privacy.Enforcer.bat` to your desktop.
 2. **Verify (Optional):** Right-click -> Edit to audit the open-source code.
 3. **Run:** Right-click and select **Run as Administrator**.
 4. **Select Option:** Enter the number or preset letter of your choice. The script automatically reloads Windows Explorer to apply UI tweaks instantly.
