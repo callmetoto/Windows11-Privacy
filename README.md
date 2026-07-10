@@ -1,26 +1,68 @@
-# Win11 Master Debloat Suite by callmetoto
+# 💻 Win11 Master Debloat Suite by callmetoto
 
-A professional, lightweight, open-source batch script built to aggressively strip away telemetry, injected ads, background resource hogs, and modern UI clutter from Windows 11. Built with system stability and transparency in mind, this tool utilizes native system policy modifications and global package uninstallation to ensure deleted features remain gone across cumulative system updates.
+A powerful, interactive Windows 11 optimization tool built completely in native batch script language. This suite provides granular controls to eliminate background telemetry, drop OS-level AI tracking, customize user interfaces, and execute advanced environment stabilization protocols.
 
-## ⚡ Key Features
+---
 
-* **🚫 Nuke Windows Copilot:** Deep uninstallation targeting both the modern standalone Store package and legacy Taskbar UI integration globally (`-AllUsers`).
-* **📰 Purge Widgets & News Feed:** Completely unhooks the intrusive Windows Web Experience Pack powering the Taskbar Widgets board, killing web-based ads and background RAM usage.
-* **🕵️ Kill Telemetry & Search Ads:** Shuts down `DiagTrack`, disables active file collection, and blocks Bing suggestions inside the native Start Menu search bar.
-* **🚀 Tame Edge Bloat:** Sets enterprise policies to stop Edge from using Startup Boost and lingering in background system processes.
-* **🖱️ Classic Context Menu:** One-click restoration of the highly requested Windows 10 legacy right-click context menu.
-* **📦 Prevent Silent Installs:** Tells Windows Content Delivery Manager to stop silently injecting unwanted third-party sponsored apps into your user profile.
-* **🛡️ Multi-Tiered Presets:** Run individual modules, pick the stable **Panther** preset, or go nuclear with the **Tiger** preset to also wipe NTFS file metadata tracking.
+## ✨ Features & Functional Modules
 
-## 🛠️ Installation & Usage
+* **🤖 Module 1: Remove COPILOT:** Instantly strips global Microsoft Copilot background infrastructure, taskbar integration paths, and app packages.
+* **📡 Module 2: Disable TELEMETRY & ADS:** Stops diagnostic tracking engines (`DiagTrack`), prevents Start Menu suggestion leaks, and kills Bing search components.
+* **🌐 Module 3: Strip EDGE Bloat:** Terminates persistent browser background routines, resource leaks, and stops Edge Startup Boost hooks.
+* **📊 Module 4: Disable METADATA & Tracking:** Overrides deep user-activity collection paths, timeline databases, and modifies NTFS last-access file logging.
+* **🎨 Module 5: Restore CLASSIC Right-Click Menu:** Injects immediate registry modifications to restore the responsive, legacy Windows 10 right-click environment.
+* **📰 Module 6: Nuke WIDGETS & NEWS FEED:** Targets and removes the global Windows Web Experience software bundle alongside taskbar news feeds.
+* **🕶️ Module 7: Enable STEALTH MODE:** An anti-forensics sandbox layer that disables localized image thumbcaches (`thumbs.db`), locks portable USB device drivers, clears system temporary directories, and kicks off automated background `cipher` cryptographic overwrite commands.
+* **🔒 Module 8: Enable LOCKDOWN MODE:** High-security containment architecture featuring local administrative security credential checking via background PowerShell integration.
 
-1. **Download:** Save `Win11-Privacy.Enforcer.bat` to your desktop.
-2. **Verify (Optional):** Right-click -> Edit to audit the open-source code.
-3. **Run:** Right-click and select **Run as Administrator**.
-4. **Select Option:** Enter the number or preset letter of your choice. The script automatically reloads Windows Explorer to apply UI tweaks instantly.
+---
 
-## 🛡️ Safety & Transparency
+## ⚡ Deployment Profiles (Presets)
 
-This script is 100% transparent. It uses native `reg add`, `sc config`, and safe `powershell` Appx removal commands. No hidden executables, no third-party telemetry, no bloatware to remove bloatware. 
+* **🐆 PANTHER Preset:** Executes all fundamental modifications (Copilot, Telemetry, Edge, UI, Widgets) safely without tampering with user metadata history, stealth settings, or administrative security locks.
+* **🐅 TIGER Preset:** The complete automation configuration package. Runs every single optimization, tracking block, and stealth layer script automatically across the machine—excluding the advanced Lockdown Mode constraints.
 
-> **Pro Tip:** Always create a System Restore Point before running system-level modification scripts.
+---
+
+## 🛠️ Execution & Usage Guide
+
+### Prerequisites
+* **Operating System:** Windows 11 (Home, Pro, or Enterprise distributions).
+* **System State:** It is highly recommended to manually establish a system restore point prior to batch application execution.
+
+### Installation & Launch Steps
+1. Download or clone this project repository workspace to your local system device directory.
+2. Locate the master execution batch script file.
+3. Right-click the file and select **"Run as Administrator"** to satisfy native system privilege authorization needs.
+
+---
+
+## 🛠️ Project Database Architecture
+
+### Primary Key Management
+* **Automatic Index Handling:** Internal system application primary keys (`id`) leverage automated database indexing logic.
+* **Engine Handling:** Modern relational systems construct internal unique B-Tree or clustered directory frameworks natively. Manual duplicate assignments slow database system pipeline structures down and should be avoided.
+
+### Manual Key Indexing Rules
+* **Foreign Table Elements:** Explicitly configure manually assigned indexing pointers targeting linked secondary ID columns (such as `user_id` mapped inside storage transaction environments).
+* **Composite Query Paths:** Build multi-layered combination keys specifically for lookups managing specific unique ID entries filtering against live data scopes simultaneously.
+
+---
+
+<!-- 
+🌐 GOOGLE SITE VERIFICATION (HIDDEN FROM RENDERED VIEW)
+Meta Tag Verification String:
+<meta name="google-site-verification" content="ZDqqqBC_P7fz8k0FsTD16k2W94bxa3BE2Eqz6iq71JI" />
+-->
+
+## ✒️ Credits & Authors
+
+This project was envisioned, structured, and developed by:
+
+* **Lead Creator:** **callmetoto** 
+  * *Responsibilities:* Main Batch/CMD architecture development, telemetry extraction methods, stealth mode design paths, and automation programming execution.
+
+---
+
+## 📄 License
+This project is open-source and available under the [MIT License](LICENSE).
