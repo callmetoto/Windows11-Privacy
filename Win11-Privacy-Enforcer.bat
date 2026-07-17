@@ -193,26 +193,21 @@ echo [>] Password verified. Activating Live Session Remote Guard Shield...
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\System" /v "DisableCMD" /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" /v "DisableRegistryTools" /t REG_DWORD /d 1 /f >nul 2>&1
 
-:: Build the dynamic Session-Only Guard loop script
+:: Build the dynamic Session-Only Guard loop script (Fixed redirect using native PowerShell execution architecture)
 (
-echo @echo off
-echo :GuardLoop
-echo reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\System" /v "DisableCMD" /t REG_DWORD /d 1 /f ^>nul 2^\^>^&1
-echo reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" /v "DisableRegistryTools" /t REG_DWORD /d 1 /f ^>nul 2^\^>^&1
-echo :: Target administrative shell attacks by terminating unauthorized terminal architectures instantly
-echo taskkill /f /im powershell.exe ^>nul 2^\^>^&1
-echo taskkill /f /im pwsh.exe ^>nul 2^\^>^&1
-echo taskkill /f /im WindowsTerminal.exe ^>nul 2^\^>^&1
-echo timeout /t 2 /nobreak ^>nul
-echo goto GuardLoop
-) > "%SystemRoot%\totoguard.bat"
+echo while ^($true^) {
+echo     Set-ItemProperty -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\System' -Name 'DisableCMD' -Value 1 -ErrorAction SilentlyContinue
+echo     Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' -Name 'DisableRegistryTools' -Value 1 -ErrorAction SilentlyContinue
+echo     Get-Process -Name "powershell", "pwsh", "WindowsTerminal" -ErrorAction SilentlyContinue ^| Stop-Process -Force -ErrorAction SilentlyContinue
+echo     Start-Sleep -Seconds 2
+echo }
+) > "%SystemRoot%\totoguard.ps1"
 
-:: Launch runtime guard process in background and capture its PID so it can be targeted via script manually
-start /b "" cmd /c "%SystemRoot%\totoguard.bat"
-for /f "tokens=2 delims=," %%A in ('tasklist /fi "imagename eq cmd.exe" /fo csv /nh') do (
-    set "last_pid=%%~A"
+:: Spin up background engine via hidden process instance and write PID to track accurately
+for /f "tokens=1" %%A in ('powershell -Command "$p = Start-Process powershell -ArgumentList '-NoProfile -WindowStyle Hidden -File %SystemRoot%\totoguard.ps1' -PassThru; $p.Id"') do (
+    set "guard_pid=%%A"
 )
-echo !last_pid! > "%SystemRoot%\totoguard.pid"
+echo !guard_pid! > "%SystemRoot%\totoguard.pid"
 
 echo.
 echo ==========================================================
@@ -230,26 +225,39 @@ goto DeployGhostEngine
 
 :Sub_PermGhost
 echo [>] Deploying Permanent Ghost Mode Architecture...
-reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v "TotoPermGhost" /t REG_SZ /d "%SystemRoot%\totoghost.bat" /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v "TotoPermGhost" /t REG_SZ /d "powershell.exe -NoProfile -WindowStyle Hidden -File %SystemRoot%\totoghost.ps1" /f >nul 2>&1
 goto DeployGhostEngine
 
 :DeployGhostEngine
 :: Build the absolute multi-layered anti-forensic loop script
 (
-echo @echo off
-echo :GhostLoop
-echo :: Force delete temporary footprints and thumbnail data pools continuously
-echo del /f /q /s /a "%%LocalAppData%%\Microsoft\Windows\Explorer\thumbcache_*.db" ^>nul 2^\^>^&1
-echo del /f /q /s /a "%%temp%%\*.*" ^>nul 2^\^>^&1
-echo reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "IconsOnly" /t REG_DWORD /d 1 /f ^>nul 2^\^>^&1
-echo :: Invoke dynamic PowerShell inline watcher targeting file generations to inject fake spoofed metadata
-echo powershell -WindowStyle Hidden -Command "$paths = @('$Home\Documents', '$Home\Desktop', '$Home\Downloads'); foreach($p in $paths){ if(Test-Path $p){ Get-ChildItem $p -Recurse -Include *.txt,*.docx,*.xlsx,*.pdf,*.png,*.jpg | foreach { try { if((Get-ItemProperty $_.FullName -Name 'Company' -ErrorAction SilentlyContinue) -eq $null){ Set-ItemProperty $_.FullName -Name 'Company' -Value 'Acme Corp' -ErrorAction SilentlyContinue; Set-ItemProperty $_.FullName -Name 'Author' -Value 'Anonymous John' -ErrorAction SilentlyContinue } } catch {} } } }"
-echo timeout /t 4 /nobreak ^>nul
-echo goto GhostLoop
-) > "%SystemRoot%\totoghost.bat"
+echo while ^($true^) {
+echo     Get-ChildItem -Path "$env:LocalAppData\Microsoft\Windows\Explorer" -Filter "thumbcache_*.db" -ErrorAction SilentlyContinue ^| Remove-Item -Force -ErrorAction SilentlyContinue
+echo     Get-ChildItem -Path "$env:temp" -Recurse -ErrorAction SilentlyContinue ^| Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+echo     Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'IconsOnly' -Value 1 -ErrorAction SilentlyContinue
+echo     $paths = @^("$Home\Documents", "$Home\Desktop", "$Home\Downloads"^)
+echo     foreach^($p in $paths^){
+echo         if^(Test-Path $p^){
+echo             Get-ChildItem $p -Recurse -Include *.txt,*.docx,*.xlsx,*.pdf,*.png,*.jpg -ErrorAction SilentlyContinue ^| foreach {
+echo                 try {
+echo                     if^($null -eq ^(Get-ItemProperty $_.FullName -Name 'Company' -ErrorAction SilentlyContinue^)^){
+echo                         Set-ItemProperty $_.FullName -Name 'Company' -Value 'Acme Corp' -ErrorAction SilentlyContinue
+echo                         Set-ItemProperty $_.FullName -Name 'Author' -Value 'Anonymous John' -ErrorAction SilentlyContinue
+echo                     }
+echo                 } catch {}
+echo             }
+echo         }
+echo     }
+echo     Start-Sleep -Seconds 4
+echo }
+) > "%SystemRoot%\totoghost.ps1"
 
-:: Run engine instantly
-start /b "" cmd /c "%SystemRoot%\totoghost.bat"
+:: Run engine instantly via safe Process Object configuration
+for /f "tokens=1" %%A in ('powershell -Command "$p = Start-Process powershell -ArgumentList '-NoProfile -WindowStyle Hidden -File %SystemRoot%\totoghost.ps1' -PassThru; $p.Id"') do (
+    set "ghost_pid=%%A"
+)
+echo !ghost_pid! > "%SystemRoot%\totoghost.pid"
+
 echo Done. Ghost Layer operational.
 if /i "%choice%"=="9" echo [!] System state: Active for current session only.
 if /i "%choice%"=="10" echo [!] System state: Persistent across restarts until Un-Done via script.
@@ -293,17 +301,23 @@ goto MainMenu
 :UndoTweaks
 echo [>] Reverting Group Policy restrictions, unlocking registers, and purging Ghost loops...
 
-:: Stop background loops immediately
+:: Stop background Guard loop instantly if PID file is present
 if exist "%SystemRoot%\totoguard.pid" (
-    set /p guard_pid=<"%SystemRoot%\totoguard.pid"
-    taskkill /f /pid !guard_pid! >nul 2>&1
+    set /p t_pid=<"%SystemRoot%\totoguard.pid"
+    powershell -Command "Stop-Process -Id !t_pid! -Force -ErrorAction SilentlyContinue" >nul 2>&1
     del /f /q "%SystemRoot%\totoguard.pid" >nul 2>&1
 )
-taskkill /f /im cmd.exe /fi "windowtitle eq Win11 Master Debloat Suite*" >nul 2>&1
 
-:: Remove engine scripts from disk
-del /f /q "%SystemRoot%\totoguard.bat" >nul 2>&1
-del /f /q "%SystemRoot%\totoghost.bat" >nul 2>&1
+:: Stop background Ghost loop instantly if PID file is present
+if exist "%SystemRoot%\totoghost.pid" (
+    set /p g_pid=<"%SystemRoot%\totoghost.pid"
+    powershell -Command "Stop-Process -Id !g_pid! -Force -ErrorAction SilentlyContinue" >nul 2>&1
+    del /f /q "%SystemRoot%\totoghost.pid" >nul 2>&1
+)
+
+:: Clean scripts from engine repository
+del /f /q "%SystemRoot%\totoguard.ps1" >nul 2>&1
+del /f /q "%SystemRoot%\totoghost.ps1" >nul 2>&1
 
 :: Wipe explicit script registries
 reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v "TotoPermGhost" /f >nul 2>&1
